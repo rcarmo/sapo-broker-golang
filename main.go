@@ -2,6 +2,8 @@ package main
 
 import (
 	"encoding/json"
+    "encoding/binary"
+    "bytes"
 	"fmt"
 )
 
@@ -52,6 +54,22 @@ func NewSubscribeMessage(topic string) *BrokerMessage {
 	}
 }
 
+func pack(msg *BrokerMessage) []byte {
+    b, _ := json.Marshal(*msg)
+    buf := new(bytes.Buffer)
+    var data = []interface{}{
+        uint16(3), // JSON transport
+        uint16(0), // version
+        int32(len(b)), // payload length
+        b,
+    }
+
+    for _, item := range data {
+        binary.Write(buf, binary.BigEndian, item)
+    }
+    return buf.Bytes()
+}
+
 func main() {
 	/*
 		conn, err := net.Dial("tcp", "broker.labs.sapo.pt:3323")
@@ -68,4 +86,6 @@ func main() {
 	msg = NewSubscribeMessage("/sapo/.*")
 	b, _ = json.Marshal(*msg)
 	fmt.Println(string(b))
+    b = pack(msg)
+    fmt.Printf("%x\n", b)
 }
