@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"encoding/json"
+	"net"
 )
 
 type (
@@ -25,6 +26,7 @@ type (
 	}
 )
 
+// NewPublishMessage builds a BrokerMessage primed to act as a message to a given topic
 func NewPublishMessage(topic string, message *string) *BrokerMessage {
 	return &BrokerMessage{
 		Action: &BrokerAction{
@@ -40,6 +42,7 @@ func NewPublishMessage(topic string, message *string) *BrokerMessage {
 	}
 }
 
+// NewSubscribeMessage builds a BrokerMessage primed to act as a subscription request
 func NewSubscribeMessage(topic string) *BrokerMessage {
 	return &BrokerMessage{
 		Action: &BrokerAction{
@@ -53,6 +56,7 @@ func NewSubscribeMessage(topic string) *BrokerMessage {
 	}
 }
 
+// pack turns a BrokerMessage into a byte array for sending over the wire
 func pack(msg *BrokerMessage) []byte {
 	b, _ := json.Marshal(*msg)
 	buf := new(bytes.Buffer)
@@ -67,4 +71,12 @@ func pack(msg *BrokerMessage) []byte {
 		binary.Write(buf, binary.BigEndian, item)
 	}
 	return buf.Bytes()
+}
+
+// Publisher takes an open connection, a broker topic and an input channel and publishes to that
+// topic until the channel is closed.
+func Publisher(conn net.Conn, topic string, in <-chan string) {
+	for message := range in {
+		conn.Write(pack(NewPublishMessage(topic, &message)))
+	}
 }
