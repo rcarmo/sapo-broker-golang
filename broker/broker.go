@@ -5,6 +5,8 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"net"
+    "fmt"
+    "encoding/hex"
 )
 
 type (
@@ -76,7 +78,15 @@ func pack(msg *BrokerMessage) []byte {
 // Publisher takes an open connection, a broker topic and an input channel and publishes to that
 // topic until the channel is closed.
 func Publisher(conn net.Conn, topic string, in <-chan string) {
+    fmt.Println("Publisher started")
 	for message := range in {
+        fmt.Println("Got message")
+        msg := NewPublishMessage(topic, &message)
+		b, _ := json.Marshal(*msg)
+		fmt.Println(string(b))
+        buf := pack(msg)
+        fmt.Println(hex.EncodeToString(buf))
 		conn.Write(pack(NewPublishMessage(topic, &message)))
+        fmt.Println("Sent")
 	}
 }
