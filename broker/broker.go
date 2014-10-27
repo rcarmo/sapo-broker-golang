@@ -29,7 +29,7 @@ func NewPublishMessage(topic string, message *string) *BrokerMessage {
 	return &BrokerMessage{
 		Action: &BrokerAction{
 			PublishInfo: &BrokerActionInfo{
-				ActionType:      "SUBSCRIBE",
+				ActionType:      "PUBLISH",
 				Destination:     &topic,
 				DestinationType: "TOPIC",
 				Message: &BrokerMessagePayload{
